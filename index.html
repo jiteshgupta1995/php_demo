@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>File</title>
+    <!-- Bootstrap core CSS -->
+</head>
+
+<body>
+    File:
+        <input name="myfile" id="csvfile" type="file" />
+        <button id="upload">Upload</button>
+    <!-- /#wrapper -->
+    <!-- Bootstrap core JavaScript -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/popper/popper.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+    $('#upload').on('click', function() {
+        var file_data = $('#csvfile').prop('files')[0];
+        var form_data = new FormData();
+        form_data.append('file', file_data);
+        console.log(form_data);
+        $.ajax({
+            url: 'upload.php',
+            dataType: 'text',
+            cache: false,
+            contentType: false,
+            processData: false,
+            data: form_data,
+            type: 'post',
+            success: function(php_script_response) {
+                readCSV(php_script_response);
+            }
+        });
+    });
+
+    function readCSV(uri) {
+        $.ajax({
+            type: "GET",
+            url: uri,
+            dataType: "text",
+            success: function(data) {
+                processData(data);
+            }
+        });
+    }
+
+    function processData(allText) {
+        var flag = 0;
+        var allTextLines = allText.split(/\r\n|\n/);
+        for (var i = 0; i < allTextLines.length; i++) {
+            var entries = allTextLines[i].split(',');
+            var lines = [];
+            for (var j = 0; j < entries.length; j++) {
+                if (entries[j] == "") {
+                    continue;
+                }
+                if (flag == 0) {
+                    flag = 1;
+                    break;
+                }
+                lines.push(entries[j]);
+            }
+            if (lines.length > 0) {
+                $.ajax({
+                    url: 'uploadDB.php',
+                    dataType: 'text',
+                    type: 'post',
+                    data: {
+                        "data":JSON.stringify(lines)
+                    },
+                    success: function(php_script_response) {
+                        console.log(php_script_response);
+                    }
+                });
+            }
+            // alert(lines);
+        }
+        alert("Done uploading");
+        window.location = 'main.php';
+    }
+    </script>
+</body>
+
+</html>
